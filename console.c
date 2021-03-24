@@ -14,7 +14,6 @@
 
 void construct_application_info(Application_info *app)
 {
-
 	getmaxyx(stdscr, app->max_size_y, app->max_size_x);
 	app->current_x = 0;
 	app->current_y = 0;
@@ -33,7 +32,7 @@ void create_set_of_colors(Application_info *app, uint8_t background_color,
 							uint8_t foreground_color) {
 	
 	if(app == NULL) {
-		fprintf(stderr, "App is not set");
+		write_logs(app, "Error: App is not set", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
@@ -50,13 +49,13 @@ void create_set_of_colors(Application_info *app, uint8_t background_color,
 void set_color(Application_info *app, uint8_t number_of_set) {
 
 	if(app == NULL) {
-		fprintf(stderr, "App is not set %s", __func__);
+		write_logs(app, "Error: App is not set", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
 
 	if(has_colors() == false) {
-		fprintf(stderr, "Error: Your system doesn't support colors in ncurser API %s ", __func__);
+		write_logs(app, "Error: Your system doesn't support colors in ncurser API", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
@@ -65,31 +64,33 @@ void set_color(Application_info *app, uint8_t number_of_set) {
 
 	if(app->set[number_of_set].background_color_value == 0 &&
 		app->set[number_of_set].foreground_color_value == 0) {
-			fprintf(stderr, "Error: Incorrect value in set of colors %s", __func__);
+			write_logs(app, "Error: Incorrect value in set of colors", __func__);
 			endwin();
 			exit(EXIT_FAILURE);
 	}
 
 	if(can_change_color() == false) {
-		fprintf(stderr, "Warning: Your system is capability of setting color once, be careful");		
+		write_logs(app, "Warning: Your system is capability of setting color once, be careful", __func__);		
 	}
 
-
-
-
-
-
+	// TODO : IDK
 	// init_pair((short)number_of_set, app->set[number_of_set].;
 
 }
 
 void create_logs_file(Application_info *app) {
 
+	if(app == NULL) {
+		write_logs(&app, "Error: App is not set", __func__);
+		endwin();
+		exit(EXIT_FAILURE);
+	}
+
 	static bool is_done = false;
 	if(is_done == false) {
 		app->logs = fopen("logs","a+");
 		if(app->logs == NULL) {
-			fprintf(stderr, "Cannot create or open logs file ");
+			fprintf(stderr, "Error: Cannot create or open logs file ");
 			exit(EXIT_FAILURE);
 		}
 		else {
@@ -98,33 +99,46 @@ void create_logs_file(Application_info *app) {
 	}
 }
 
-void write_logs(Application_info *app, const char* message) {
-	time_t current_time = time(NULL);
-	if(app == NULL) {
-		fprintf(stderr, "App is not set %s", __func__);
-		endwin();
-		exit(EXIT_FAILURE);
+void write_logs(Application_info *app, const char* message, const char* func) {
+	
+	if(app->logs == NULL) {
+		fprintf(stderr, "Error: Logs file is not initialized");
+		return;
 	}
 
-	if(app->logs == NULL) {
-		fprintf(stderr, "Logs file is not initialized");
+	time_t current_time = time(NULL);
+
+	if(current_time == ((time_t) -1)) {
+		fprintf(app->logs, "%s %s", "Error: Failure to obtain the current time.", __func__);
 		return;
 	} 
 
-	if(current_time == ((time_t) -1)) {
-		fprintf(app->logs, "Failure to obtain the current time.\n");
+	const char* time_string = ctime(&current_time);
+
+	if(time_string == NULL) {
+		fprintf(app->logs, "%s %s", "Error: Failure to convert the current time.", __func__);
 		return;
 	}
 
 	fseek(app->logs, 0, SEEK_END);
-	fprintf(app->logs, "%s \n" , message);
+	fprintf(app->logs, "%s : %s - %s", message, func, time_string);
 }
 
 void destroy_application_info(Application_info *app) {
+	if(app == NULL) {
+		write_logs(&app, "Error: App is not set", __func__);
+		endwin();
+		exit(EXIT_FAILURE);
+	}
 
-	// TODO: destroy all set of colors
+	for(unsigned short i = 0; i < MAX_COLOR_SETS; i++) {
+		init_pair(i, 0, 0);
+		app->set[i].background_color_value = 0;
+		app->set[i].foreground_color_value = 0;
+	}
+
 	if(fclose(app->logs) == EOF) {
-		fprintf(stderr, "Cannot close file ");
+		fprintf(stderr, "Error: Cannot close file");
 		return;
 	}
 }

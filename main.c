@@ -32,7 +32,7 @@ int main(void)
 	attron(A_STANDOUT);
 	addstr("I am highlighted!\n");
 	getch();
-	write_logs(&app, "Unfortunelly");
+	write_logs(&app, "Unfortunelly", __func__);
 
 	while (is_running)
 	{

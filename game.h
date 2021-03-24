@@ -42,6 +42,6 @@ void construct_player(Player *player);
 bool make_move(void);			// TODO
 bool check_is_game_over(void);	// TODO
 
-void draw_field(Field *field, unsigned int width, unsigned int height); // TODO
+void draw_field(Field *field, const unsigned int width, const unsigned int height); // TODO
 void start_game(Player* player, size_t number_of_player);
 #endif

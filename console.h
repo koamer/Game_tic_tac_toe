@@ -50,6 +50,6 @@ void set_color(Application_info *app, uint8_t number_of_set);					//TODO
 void create_set_of_colors(Application_info *app,uint8_t background_color, 	
 							uint8_t foreground_color ); 						
 void create_logs_file(Application_info *app);									
-void write_logs(Application_info *app, const char* message);					 
+void write_logs(Application_info *app, const char* message, const char* func);					 
 
 #endif
