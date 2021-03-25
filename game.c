@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 
-#include "game.h"
+#include "console.h"
 
 extern bool is_running;
 
@@ -34,4 +34,7 @@ void start_game(Player* player, const size_t number_of_player)
 	player[0].picked = (CHARACTER)who_start;
 	player[1].picked = (CHARACTER)(!who_start);
 	is_running = true;
+}
+void draw_field(Application_info *app, const unsigned int width, const unsigned int height) {
+	
 }

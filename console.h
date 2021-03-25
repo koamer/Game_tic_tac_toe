@@ -27,9 +27,9 @@ typedef struct Application_info
 
 	struct Set_of_colors
 	{
-		unsigned int set_number;
-		int foreground_color_value;
-		int background_color_value;
+		short set_number;
+		short foreground_color_value;
+		short background_color_value;
 	} set[MAX_COLOR_SETS];
 
 	unsigned int max_size_x;
@@ -45,11 +45,12 @@ typedef struct Application_info
 
 void construct_application_info(Application_info *app);
 void destroy_application_info(Application_info *app);
-void set_atribiute(Application_info *app, unsigned int attr);					//TODO
-void set_color(Application_info *app, uint8_t number_of_set);					//TODO
-void create_set_of_colors(Application_info *app,uint8_t background_color, 	
+void set_atribiute(Application_info *app, int arguments, ...);
+void set_color(Application_info *app, uint8_t number_of_set);				
+void create_set_of_colors(Application_info *app, uint8_t background_color, 	
 							uint8_t foreground_color ); 						
 void create_logs_file(Application_info *app);									
-void write_logs(Application_info *app, const char* message, const char* func);					 
+void write_logs(Application_info *app, const char* message, const char* func);
+Cordinates get_mouse_click_postion(Application_info *app); 		 
 
 #endif

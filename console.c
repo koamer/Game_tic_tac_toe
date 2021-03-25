@@ -70,18 +70,17 @@ void set_color(Application_info *app, uint8_t number_of_set) {
 	}
 
 	if(can_change_color() == false) {
+		fprintf(stderr, "%s", "Warning: Your system is capability of setting color once, be careful");
 		write_logs(app, "Warning: Your system is capability of setting color once, be careful", __func__);		
 	}
-
-	// TODO : IDK
-	// init_pair((short)number_of_set, app->set[number_of_set].;
-
+	init_pair((short)number_of_set, app->set[number_of_set].foreground_color_value, app->set[number_of_set].background_color_value);
+	attron(COLOR_PAIR(number_of_set));
 }
 
 void create_logs_file(Application_info *app) {
 
 	if(app == NULL) {
-		write_logs(&app, "Error: App is not set", __func__);
+		write_logs(app, "Error: App is not set", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
@@ -126,19 +125,61 @@ void write_logs(Application_info *app, const char* message, const char* func) {
 
 void destroy_application_info(Application_info *app) {
 	if(app == NULL) {
-		write_logs(&app, "Error: App is not set", __func__);
+		write_logs(app, "Error: App is not set", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
 
-	for(unsigned short i = 0; i < MAX_COLOR_SETS; i++) {
+	for(short i = 0; i < MAX_COLOR_SETS; i++) {
 		init_pair(i, 0, 0);
 		app->set[i].background_color_value = 0;
 		app->set[i].foreground_color_value = 0;
 	}
+	endwin();
 
 	if(fclose(app->logs) == EOF) {
 		fprintf(stderr, "Error: Cannot close file");
 		return;
 	}
+}
+void set_atribiute(Application_info *app, int arguments, ...) {
+	va_list arg;
+
+	if(app == NULL) {
+		write_logs(app, "Error: App is not set", __func__);
+		endwin();
+		exit(EXIT_FAILURE);
+	}
+	if(arguments == 0) {
+		write_logs(app, "Error: Numbers of arguments cannot be 0 ", __func__);
+		return;
+	}
+
+	va_start(arg, arguments);
+
+	for(int i = 0; i < arguments; i++) {
+		attron(va_arg(arg, int));
+	}
+	va_end(arg);
+}
+Cordinates get_mouse_click_postion(Application_info *app) {
+	Cordinates cord;
+	MEVENT event;
+	if(getmouse(&event) == OK) {
+		if(event.bstate == BUTTON1_CLICKED) {
+			cord.x = event.x;
+			cord.y = event.y;
+		}
+		else {
+			cord.x = 0;
+			cord.y = 0;
+		}
+	}
+	else {
+		write_logs(app, "Error: Cannot get mouse event", __func__);
+		cord.x = 0;
+		cord.y = 0;
+	}
+
+	return cord;
 }

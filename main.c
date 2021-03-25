@@ -28,11 +28,12 @@ int main(void)
 	Application_info app;
 
 	construct_application_info(&app);
+	write_logs(&app, "Unfortunelly", __func__);
+	
+	set_atribiute(&app, 2, A_REVERSE, A_BOLD);
 
-	attron(A_STANDOUT);
 	addstr("I am highlighted!\n");
 	getch();
-	write_logs(&app, "Unfortunelly", __func__);
 
 	while (is_running)
 	{
