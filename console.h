@@ -4,7 +4,6 @@
  * @author koamer
  * @date 2020-09-02
  * */
-
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
@@ -12,6 +11,7 @@
 #include <ncurses.h>
 #include <curses.h>
 #include <menu.h>
+#include <stdint.h>
 
 #define MAX_COLOR_SETS 64
 #define NUMBER_OF_PLAYER 2 
@@ -19,38 +19,39 @@
 
 typedef struct Application_info
 {
-	ITEM* it;
-	FILE* logs;
-	MENU* menu;
-	Field field[TABLE][TABLE];
-	Player player[NUMBER_OF_PLAYER];
+	struct Game_Contex 
+	{
+		Field field[TABLE][TABLE];
+		Player player[NUMBER_OF_PLAYER];
+	} contex;
 
 	struct Set_of_colors
 	{
-		short set_number;
-		short foreground_color_value;
-		short background_color_value;
+		int16_t set_number;
+		int16_t foreground_color_value;
+		int16_t background_color_value;
 	} set[MAX_COLOR_SETS];
 
-	unsigned int max_size_x;
-	unsigned int max_size_y;
+	ITEM* it;
+	FILE* logs;
+	MENU* menu;
 
-	unsigned int current_x;
-	unsigned int current_y;
-	unsigned int current_color;
+	uint32_t max_size_y;
+	uint32_t max_size_x;
 
-	
-
+	uint32_t current_x;
+	uint32_t current_y;
+	uint32_t current_color;
 } Application_info;
 
 void construct_application_info(Application_info *app);
 void destroy_application_info(Application_info *app);
-void set_atribiute(Application_info *app, int arguments, ...);
-void set_color(Application_info *app, uint8_t number_of_set);				
+void set_atribiute(Application_info *app, int32_t arguments, ...);
+void set_color(Application_info *app, int16_t number_of_set);				
 void create_set_of_colors(Application_info *app, uint8_t background_color, 	
-							uint8_t foreground_color ); 						
+							uint8_t foreground_color); 						
 void create_logs_file(Application_info *app);									
 void write_logs(Application_info *app, const char* message, const char* func);
-Cordinates get_mouse_click_postion(Application_info *app); 		 
-
+Cordinates get_mouse_click_postion(Application_info *app); 
+void draw_field(Application_info *app, const uint32_t width, const uint32_t height);		 
 #endif

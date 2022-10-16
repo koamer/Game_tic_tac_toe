@@ -10,13 +10,11 @@
 
 #include "console.h"
 
-bool is_running;
-
 typedef enum 
 {
 	GAME_CHARACTER_X = 0,
 	GAME_CHARACTER_O = 1,
-	GAME_CHARACTER_NS = 2
+	GAME_CHARACTER_NS = 2 // Not Selected 
 } CHARACTER;
 
 typedef struct 
@@ -34,8 +32,8 @@ typedef struct
 
 typedef struct
 {
-	CHARACTER picked;
 	unsigned int moves;
+	CHARACTER picked;
 } Player;
 
 void construct_field(Field *field);
@@ -44,6 +42,5 @@ void construct_player(Player *player);
 bool make_move(void);			// TODO
 bool check_is_game_over(void);	// TODO
 
-void draw_field(Application_info *app, const unsigned int width, const unsigned int height);
 void start_game(Player* player, size_t number_of_player);
 #endif

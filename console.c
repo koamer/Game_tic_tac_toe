@@ -4,7 +4,6 @@
  * @author koamer
  * @date 2020-09-02
  * */
-
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -27,6 +26,14 @@ void construct_application_info(Application_info *app)
 		app->set[i].background_color_value = 0;
 	}
 	create_logs_file(app);
+	for(size_t i = 0 ; i < TABLE; i++) {
+		for(size_t j = 0; j < TABLE; j++) {
+			construct_field(&app->contex.field[i][j]);
+		}
+	}
+	for(size_t i = 0; i < NUMBER_OF_PLAYER; i++) { 
+		construct_player(&app->contex.player[i]);
+	}
 }
 void create_set_of_colors(Application_info *app, uint8_t background_color, 
 							uint8_t foreground_color) {
@@ -37,16 +44,16 @@ void create_set_of_colors(Application_info *app, uint8_t background_color,
 		exit(EXIT_FAILURE);
 	}
 	
-	unsigned int i = 0;
+	size_t i = 0;
 	while(app->set[i].background_color_value != 0 ||
 		  app->set[i].foreground_color_value != 0) {
-		i++;
+		i++; // TODO: Overflow
 	}
 	app->set[i].background_color_value = background_color;
 	app->set[i].foreground_color_value = foreground_color;
 }
 
-void set_color(Application_info *app, uint8_t number_of_set) {
+void set_color(Application_info *app, int16_t number_of_set) {
 
 	if(app == NULL) {
 		write_logs(app, "Error: App is not set", __func__);
@@ -73,7 +80,7 @@ void set_color(Application_info *app, uint8_t number_of_set) {
 		fprintf(stderr, "%s", "Warning: Your system is capability of setting color once, be careful");
 		write_logs(app, "Warning: Your system is capability of setting color once, be careful", __func__);		
 	}
-	init_pair((short)number_of_set, app->set[number_of_set].foreground_color_value, app->set[number_of_set].background_color_value);
+	init_pair(number_of_set, app->set[number_of_set].foreground_color_value, app->set[number_of_set].background_color_value);
 	attron(COLOR_PAIR(number_of_set));
 }
 
@@ -99,7 +106,6 @@ void create_logs_file(Application_info *app) {
 }
 
 void write_logs(Application_info *app, const char* message, const char* func) {
-	
 	if(app->logs == NULL) {
 		fprintf(stderr, "Error: Logs file is not initialized");
 		return;
@@ -142,7 +148,7 @@ void destroy_application_info(Application_info *app) {
 		return;
 	}
 }
-void set_atribiute(Application_info *app, int arguments, ...) {
+void set_atribiute(Application_info *app, int32_t arguments, ...) {
 	va_list arg;
 
 	if(app == NULL) {
@@ -158,7 +164,7 @@ void set_atribiute(Application_info *app, int arguments, ...) {
 	va_start(arg, arguments);
 
 	for(int i = 0; i < arguments; i++) {
-		attron(va_arg(arg, int));
+		attron(va_arg(arg, int32_t));
 	}
 	va_end(arg);
 }
@@ -182,4 +188,16 @@ Cordinates get_mouse_click_postion(Application_info *app) {
 	}
 
 	return cord;
+}
+void draw_field(Application_info *app, uint32_t width, uint32_t height) {
+	printw("%d %d", width, height);
+	mvprintw(height / 2 , width / 2, "Hello");
+
+	border("\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551");
+	//box_set(stdscr, (const cchar_t *) "\u2551")
+	// box(stdscr, width, height);
+	//chtype type;
+	// 			addstr("\u2551");
+	// 			addstr("\u2550");
+	
 }

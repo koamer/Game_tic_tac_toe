@@ -4,42 +4,36 @@
  * @author koamer
  * @date 2020-09-02
  * */
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include <ncurses.h>
-#include <curses.h>
-#include <menu.h>
-
-//#include "game.h"
+#include <locale.h>
 
 #include "console.h"
 
-extern bool is_running;
+#define _XOPEN_SOURCE_EXTENDED 
 
 int main(void)
 {
 	srand(time(NULL));
+	setlocale(LC_ALL, "");
+	
 	initscr();
 
 	Application_info app;
 
 	construct_application_info(&app);
-	write_logs(&app, "Unfortunelly", __func__);
-	
-	set_atribiute(&app, 2, A_REVERSE, A_BOLD);
 
-	addstr("I am highlighted!\n");
-	getch();
+	bool is_running = true;
 
 	while (is_running)
-	{
-		//draw(field);
-		is_running = false;
+		{
+			draw_field(&app, app.max_size_x - 1 , app.max_size_y );
+			getch();
 
+		is_running = false;
 	}
 	endwin();
 	return 0;
