@@ -2,20 +2,37 @@
  * @brief Implement of console
  * @file console.c
  * @author koamer
- * @date 2020-09-02
+ * @date 2022-10-20
  * */
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
 #include "console.h"
+
+#define _GNU_SOURCE
+
+typedef struct Window_size
+{
+	uint32_t width;
+	uint32_t width_offset;
+
+	uint32_t height;
+	uint32_t height_offset;
+} Window_size;
+
+
+static void draw_menu_contex(Application_info *app, Window_size *win_size);
 
 void construct_application_info(Application_info *app)
 {
+	raw();
+	noecho();
+	system("setterm -cursor off");
 	getmaxyx(stdscr, app->max_size_y, app->max_size_x);
-	app->current_x = 0;
-	app->current_y = 0;
 
 	mousemask(REPORT_MOUSE_POSITION, NULL);
 
@@ -34,7 +51,14 @@ void construct_application_info(Application_info *app)
 	for(size_t i = 0; i < NUMBER_OF_PLAYER; i++) { 
 		construct_player(&app->contex.player[i]);
 	}
+	app->contex.current_player_move = &app->contex.player[0];
+	if(app->contex.current_player_move == NULL) {
+		write_logs(app, "Players has not been initialized", __func__);
+		destroy_application_info(app);
+		exit(EXIT_FAILURE);
+	}
 }
+
 void create_set_of_colors(Application_info *app, uint8_t background_color, 
 							uint8_t foreground_color) {
 	
@@ -77,11 +101,11 @@ void set_color(Application_info *app, int16_t number_of_set) {
 	}
 
 	if(can_change_color() == false) {
-		fprintf(stderr, "%s", "Warning: Your system is capability of setting color once, be careful");
 		write_logs(app, "Warning: Your system is capability of setting color once, be careful", __func__);		
 	}
-	init_pair(number_of_set, app->set[number_of_set].foreground_color_value, app->set[number_of_set].background_color_value);
-	attron(COLOR_PAIR(number_of_set));
+	// TODO: Overflow can happen here
+	init_pair(number_of_set + 1, app->set[number_of_set].foreground_color_value, app->set[number_of_set].background_color_value);
+	attron(COLOR_PAIR(number_of_set + 1));
 }
 
 void create_logs_file(Application_info *app) {
@@ -91,21 +115,14 @@ void create_logs_file(Application_info *app) {
 		endwin();
 		exit(EXIT_FAILURE);
 	}
-
-	static bool is_done = false;
-	if(is_done == false) {
-		app->logs = fopen("logs","a+");
-		if(app->logs == NULL) {
-			fprintf(stderr, "Error: Cannot create or open logs file ");
-			exit(EXIT_FAILURE);
-		}
-		else {
-			is_done = true;
-		}		
+	app->logs = fopen("logs","w+");
+	if(app->logs == NULL) {
+		fprintf(stderr, "Error: Cannot create or open logs file ");
+		exit(EXIT_FAILURE);		
 	}
 }
 
-void write_logs(Application_info *app, const char* message, const char* func) {
+void write_logs(Application_info* app, const char* message, const char* func) {
 	if(app->logs == NULL) {
 		fprintf(stderr, "Error: Logs file is not initialized");
 		return;
@@ -118,15 +135,16 @@ void write_logs(Application_info *app, const char* message, const char* func) {
 		return;
 	} 
 
-	const char* time_string = ctime(&current_time);
+	char* time_string = ctime(&current_time);
 
 	if(time_string == NULL) {
 		fprintf(app->logs, "%s %s", "Error: Failure to convert the current time.", __func__);
 		return;
 	}
+	time_string[strlen(time_string) - 1] = '\0'; // Removing new line at the end of the time string
 
 	fseek(app->logs, 0, SEEK_END);
-	fprintf(app->logs, "%s : %s - %s", message, func, time_string);
+	fprintf(app->logs, "%s %s - %s\n", time_string, message, func);
 }
 
 void destroy_application_info(Application_info *app) {
@@ -147,8 +165,10 @@ void destroy_application_info(Application_info *app) {
 		fprintf(stderr, "Error: Cannot close file");
 		return;
 	}
+	system("setterm -cursor on");
 }
-void set_atribiute(Application_info *app, int32_t arguments, ...) {
+
+void set_atribiute(Application_info* app, int32_t arguments, ...) {
 	va_list arg;
 
 	if(app == NULL) {
@@ -168,7 +188,8 @@ void set_atribiute(Application_info *app, int32_t arguments, ...) {
 	}
 	va_end(arg);
 }
-Cordinates get_mouse_click_postion(Application_info *app) {
+
+Cordinates get_mouse_click_postion(Application_info* app) {
 	Cordinates cord;
 	MEVENT event;
 	if(getmouse(&event) == OK) {
@@ -189,15 +210,59 @@ Cordinates get_mouse_click_postion(Application_info *app) {
 
 	return cord;
 }
-void draw_field(Application_info *app, uint32_t width, uint32_t height) {
-	printw("%d %d", width, height);
-	mvprintw(height / 2 , width / 2, "Hello");
 
-	border("\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551", "\u2551");
-	//box_set(stdscr, (const cchar_t *) "\u2551")
-	// box(stdscr, width, height);
-	//chtype type;
-	// 			addstr("\u2551");
-	// 			addstr("\u2550");
+void draw_field(Application_info* app) {
+
+	create_set_of_colors(app, COLOR_BLACK, COLOR_WHITE);
+	set_color(app, 0);
+
+	border(0, 0, 0, 0, 0, 0, 0, 0); // prints deafult border
+
+	const uint32_t width_offset = app->max_size_x / 4;
+	const uint32_t height_offset = app->max_size_y / 8;
+
+	const uint32_t width_working_area = app->max_size_x - 2 * width_offset;
+	const uint32_t height_working_area = app->max_size_y - 2 * height_offset;
 	
+	mvhline(height_offset + height_working_area / 3, width_offset, 0, width_working_area);
+	mvhline(height_offset + 2 * (height_working_area / 3), width_offset, 0, width_working_area);
+	mvvline(height_offset, width_offset + width_working_area / 3, 0, height_working_area);
+	mvvline(height_offset, width_offset + 2 * (width_working_area / 3), 0, height_working_area);
+
+	Window_size win_size = {
+		.height = height_working_area,
+		.width = width_working_area,
+		.height_offset = height_offset,
+		.width_offset = width_offset
+	};
+	draw_menu_contex(app, &win_size);
+}
+static void draw_menu_contex(Application_info* app, Window_size* win_size) {
+	const char common_part[] = "Turn: ";
+
+	const uint32_t string_offset = sizeof(common_part);
+
+	char whos_turn = {0};
+	switch(app->contex.current_player_move->picked) {
+		case GAME_CHARACTER_X: {
+			whos_turn = 'X';
+			break;
+		}
+		case GAME_CHARACTER_O: {
+			whos_turn = 'O';
+			break;
+		}
+		case GAME_CHARACTER_NS: {
+			write_logs(app, "The game didn't initialize properly", __func__);
+			destroy_application_info(app);
+			exit(-1);
+		}
+		default: {
+			write_logs(app, "Something REALLY went wrong but idk what", __func__);
+			destroy_application_info(app);
+			exit(-1);
+		}
+
+	}
+	mvprintw(1, win_size->width + sizeof(char) + 1 - string_offset, "%s%c", common_part, whos_turn);
 }

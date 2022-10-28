@@ -2,13 +2,12 @@
  * @brief Main details in game
  * @file game.h
  * @author koamer
- * @date 2020-09-02
+ * @date 2022-10-20
  * */
 
 #ifndef GAME_H
 #define GAME_H
 
-#include "console.h"
 
 typedef enum 
 {
@@ -39,7 +38,7 @@ typedef struct
 void construct_field(Field *field);
 void construct_player(Player *player);
 
-bool make_move(void);			// TODO
+bool make_move(Player* player, Field * field, Cordinates *cord);
 bool check_is_game_over(void);	// TODO
 
 void start_game(Player* player, size_t number_of_player);

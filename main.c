@@ -2,7 +2,7 @@
  * @brief Game in OX
  * @file main.c
  * @author koamer
- * @date 2020-09-02
+ * @date 2022-10-20
  * */
 #include <stdio.h>
 #include <stdint.h>
@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <locale.h>
+#include <unistd.h>
 
 #include "console.h"
 
@@ -29,12 +30,14 @@ int main(void)
 	bool is_running = true;
 
 	while (is_running)
-		{
-			draw_field(&app, app.max_size_x - 1 , app.max_size_y );
-			getch();
+	{
+		start_game(app.contex.player, NUMBER_OF_PLAYER);
+		draw_field(&app);
+		getch();
 
 		is_running = false;
 	}
+	destroy_application_info(&app);
 	endwin();
 	return 0;
 }

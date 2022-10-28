@@ -2,14 +2,14 @@
  * @brief Control console surface
  * @file console.h
  * @author koamer
- * @date 2020-09-02
+ * @date 2022-10-20
  * */
 #ifndef CONSOLE_H
 #define CONSOLE_H
-
 #include "game.h"
 #include <ncurses.h>
 #include <curses.h>
+
 #include <menu.h>
 #include <stdint.h>
 
@@ -23,6 +23,7 @@ typedef struct Application_info
 	{
 		Field field[TABLE][TABLE];
 		Player player[NUMBER_OF_PLAYER];
+		Player* current_player_move; 
 	} contex;
 
 	struct Set_of_colors
@@ -35,12 +36,10 @@ typedef struct Application_info
 	ITEM* it;
 	FILE* logs;
 	MENU* menu;
-
+	
 	uint32_t max_size_y;
 	uint32_t max_size_x;
-
-	uint32_t current_x;
-	uint32_t current_y;
+	
 	uint32_t current_color;
 } Application_info;
 
@@ -52,6 +51,8 @@ void create_set_of_colors(Application_info *app, uint8_t background_color,
 							uint8_t foreground_color); 						
 void create_logs_file(Application_info *app);									
 void write_logs(Application_info *app, const char* message, const char* func);
+
 Cordinates get_mouse_click_postion(Application_info *app); 
-void draw_field(Application_info *app, const uint32_t width, const uint32_t height);		 
+
+void draw_field(Application_info *app);
 #endif
