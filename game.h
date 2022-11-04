@@ -38,7 +38,7 @@ typedef struct
 void construct_field(Field *field);
 void construct_player(Player *player);
 
-bool make_move(Player* player, Field * field, Cordinates *cord);
+bool make_move(Player* player, Field **field, Cordinates *cord);
 bool check_is_game_over(void);	// TODO
 
 void start_game(Player* player, size_t number_of_player);

@@ -33,8 +33,7 @@ void construct_application_info(Application_info *app)
 	noecho();
 	system("setterm -cursor off");
 	getmaxyx(stdscr, app->max_size_y, app->max_size_x);
-
-	mousemask(REPORT_MOUSE_POSITION, NULL);
+	keypad(initscr(), true);
 
 	for (size_t i = 0; i < MAX_COLOR_SETS; i++)
 	{
@@ -189,25 +188,23 @@ void set_atribiute(Application_info* app, int32_t arguments, ...) {
 	va_end(arg);
 }
 
-Cordinates get_mouse_click_postion(Application_info* app) {
-	Cordinates cord;
+Cordinates get_mouse_click_postion(void) {
 	MEVENT event;
-	if(getmouse(&event) == OK) {
-		if(event.bstate == BUTTON1_CLICKED) {
-			cord.x = event.x;
-			cord.y = event.y;
+	mousemask(ALL_MOUSE_EVENTS, NULL);
+	while(getch() != KEY_MOUSE)  {
+		if(getmouse(&event) != OK) {
+			if (event.bstate != BUTTON1_CLICKED) {
+				break;
+			}
 		}
 		else {
-			cord.x = 0;
-			cord.y = 0;
+			continue;
 		}
 	}
-	else {
-		write_logs(app, "Error: Cannot get mouse event", __func__);
-		cord.x = 0;
-		cord.y = 0;
-	}
-
+	Cordinates cord = {
+		.x = event.x,
+		.y = event.y
+	};
 	return cord;
 }
 
@@ -240,7 +237,7 @@ void draw_field(Application_info* app) {
 static void draw_menu_contex(Application_info* app, Window_size* win_size) {
 	const char common_part[] = "Turn: ";
 
-	const uint32_t string_offset = sizeof(common_part);
+	const size_t string_offset = sizeof(common_part);
 
 	char whos_turn = {0};
 	switch(app->contex.current_player_move->picked) {

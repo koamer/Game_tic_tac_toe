@@ -35,8 +35,8 @@ void start_game(Player* player, const size_t number_of_player)
 	player[1].picked = (CHARACTER)(!who_start);
 }
 
-bool make_move(Player* player, Field * field, Cordinates *cord) {
-	char current_move = player->picked == GAME_CHARACTER_O ? 'O' : 'X';
+bool make_move(Player* player, Field **field, Cordinates *cord) {
+	const char current_move = player->picked == GAME_CHARACTER_O ? 'O' : 'X';
 
 	return true;
 }

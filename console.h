@@ -33,9 +33,7 @@ typedef struct Application_info
 		int16_t background_color_value;
 	} set[MAX_COLOR_SETS];
 
-	ITEM* it;
 	FILE* logs;
-	MENU* menu;
 	
 	uint32_t max_size_y;
 	uint32_t max_size_x;
@@ -52,7 +50,7 @@ void create_set_of_colors(Application_info *app, uint8_t background_color,
 void create_logs_file(Application_info *app);									
 void write_logs(Application_info *app, const char* message, const char* func);
 
-Cordinates get_mouse_click_postion(Application_info *app); 
+Cordinates get_mouse_click_postion(void); 
 
 void draw_field(Application_info *app);
 #endif
