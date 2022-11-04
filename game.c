@@ -2,7 +2,7 @@
  * @brief Implement of game
  * @file game.c
  * @author koamer
- * @date 2022-10-20
+ * @date 2023-11-01
  * */
 
 #include <stdio.h>
@@ -16,7 +16,12 @@ void construct_field(Field *field)
 {
 	field->is_empty = true;
 	field->character = GAME_CHARACTER_NS;
-}
+
+	for(uint32_t i = 0; i < CORNER_NUM; i++) {
+		field->corner_cord[i].x = 0;
+		field->corner_cord[i].y = 0;
+	}
+}	
 
 void construct_player(Player *player)
 {
@@ -35,8 +40,14 @@ void start_game(Player* player, const size_t number_of_player)
 	player[1].picked = (CHARACTER)(!who_start);
 }
 
-bool make_move(Player* player, Field **field, Cordinates *cord) {
-	const char current_move = player->picked == GAME_CHARACTER_O ? 'O' : 'X';
+bool check_is_game_over(Field field[TABLE][TABLE]) {
+	(void)field;
+	return true;
+}
 
+bool make_move(Player* player, Field *field) {
+	const char current_move = player->picked == GAME_CHARACTER_O ? 'O' : 'X';
+	UNUSED(current_move);
+	UNUSED(field);
 	return true;
 }

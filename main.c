@@ -15,15 +15,12 @@
 #include "console.h"
 
 #define _XOPEN_SOURCE_EXTENDED
-#ifndef DEBUG_MODE
-	#define DEBUG_MODE 0 
-#endif
 
 int main(void)
 {
 	srand(time(NULL));
 	setlocale(LC_ALL, "");
-	
+
 	initscr();
 
 	Application_info app;
@@ -32,15 +29,23 @@ int main(void)
 
 	bool is_running = true;
 
+	Window_size win_size;
+	
 	while (is_running)
 	{
 		start_game(app.contex.player, NUMBER_OF_PLAYER);
-		#if DEBUG_MODE == 1
-		draw_field(&app);
-		#endif
+		draw_field(&app, &win_size);
 		Cordinates cord = get_mouse_click_postion();
-		printw("Coordinates of clicked mouse: X : %d  Y :%d ", cord.x, cord.y);
-		getch();
+		int32_t tile_x = -1, tile_y = -1;
+		get_event_positon(&tile_x, &tile_y, app.contex.field, cord);
+		if((tile_x)  == -1 || (tile_y) == -1) {
+			write_logs(&app, "Event postion is not in the any tile of the game", __func__);
+			fprintf(app.logs, "ERR DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+			continue;
+		}
+		fprintf(app.logs, "DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+		make_move(app.contex.current_player_move, &app.contex.field[tile_x][tile_y]);
+		check_is_game_over(app.contex.field);
 		is_running = false;
 	}
 	destroy_application_info(&app);

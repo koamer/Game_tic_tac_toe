@@ -2,7 +2,7 @@
  * @brief Implement of console
  * @file console.c
  * @author koamer
- * @date 2022-10-20
+ * @date 2023-12-03
  * */
 #include <ncurses.h>
 #include <stdbool.h>
@@ -15,17 +15,9 @@
 
 #define _GNU_SOURCE
 
-typedef struct Window_size
-{
-	uint32_t width;
-	uint32_t width_offset;
-
-	uint32_t height;
-	uint32_t height_offset;
-} Window_size;
-
-
-static void draw_menu_contex(Application_info *app, Window_size *win_size);
+static void draw_menu_contex(Application_info *app, Window_size win_size);
+static bool check_if_mouse_button_pressed(MEVENT *event);
+static bool handle_input_event(MEVENT *event, Cordinates* cord);
 
 void construct_application_info(Application_info *app)
 {
@@ -47,7 +39,7 @@ void construct_application_info(Application_info *app)
 			construct_field(&app->contex.field[i][j]);
 		}
 	}
-	for(size_t i = 0; i < NUMBER_OF_PLAYER; i++) { 
+	for(size_t i = 0; i < NUMBER_OF_PLAYER; i++) {
 		construct_player(&app->contex.player[i]);
 	}
 	app->contex.current_player_move = &app->contex.player[0];
@@ -60,13 +52,13 @@ void construct_application_info(Application_info *app)
 
 void create_set_of_colors(Application_info *app, uint8_t background_color, 
 							uint8_t foreground_color) {
-	
+
 	if(app == NULL) {
 		write_logs(app, "Error: App is not set", __func__);
 		endwin();
 		exit(EXIT_FAILURE);
 	}
-	
+
 	size_t i = 0;
 	while(app->set[i].background_color_value != 0 ||
 		  app->set[i].foreground_color_value != 0) {
@@ -117,7 +109,7 @@ void create_logs_file(Application_info *app) {
 	app->logs = fopen("logs","w+");
 	if(app->logs == NULL) {
 		fprintf(stderr, "Error: Cannot create or open logs file ");
-		exit(EXIT_FAILURE);		
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -132,7 +124,7 @@ void write_logs(Application_info* app, const char* message, const char* func) {
 	if(current_time == ((time_t) -1)) {
 		fprintf(app->logs, "%s %s", "Error: Failure to obtain the current time.", __func__);
 		return;
-	} 
+	}
 
 	char* time_string = ctime(&current_time);
 
@@ -190,25 +182,26 @@ void set_atribiute(Application_info* app, int32_t arguments, ...) {
 
 Cordinates get_mouse_click_postion(void) {
 	MEVENT event;
+	Cordinates cord;
 	mousemask(ALL_MOUSE_EVENTS, NULL);
-	while(getch() != KEY_MOUSE)  {
-		if(getmouse(&event) != OK) {
-			if (event.bstate != BUTTON1_CLICKED) {
-				break;
-			}
-		}
-		else {
-			continue;
-		}
-	}
-	Cordinates cord = {
-		.x = event.x,
-		.y = event.y
-	};
+	while (handle_input_event(&event, &cord) == false) {}
 	return cord;
 }
 
-void draw_field(Application_info* app) {
+void calculate_corners(Application_info *app, Field field[TABLE][TABLE], Window_size win_size) {
+	for(uint32_t i = 0; i < TABLE; i++) {
+		for(uint32_t j = 0; j < TABLE; j++) {
+			for(uint32_t k = 0; k < CORNER_NUM; k++) {
+				field[i][j].corner_cord[k].x = win_size.width_offset + ((win_size.width / 3) * j)  + ((k % 2) * (win_size.width / 3));
+				field[i][j].corner_cord[k].y = win_size.height_offset + (win_size.height - ((win_size.height / 3) * i)) - ((k >= 2) * win_size.height / 3);
+				fprintf(app->logs, "Field [%d][%d]: Corner:%d x:%d y:%d\n", i, j, k, field[i][j].corner_cord[k].x, field[i][j].corner_cord[k].y);
+			}
+		}
+	}
+	
+}
+
+void draw_field(Application_info* app, Window_size* win_size) {
 
 	create_set_of_colors(app, COLOR_BLACK, COLOR_WHITE);
 	set_color(app, 0);
@@ -220,21 +213,22 @@ void draw_field(Application_info* app) {
 
 	const uint32_t width_working_area = app->max_size_x - 2 * width_offset;
 	const uint32_t height_working_area = app->max_size_y - 2 * height_offset;
-	
+
 	mvhline(height_offset + height_working_area / 3, width_offset, 0, width_working_area);
 	mvhline(height_offset + 2 * (height_working_area / 3), width_offset, 0, width_working_area);
 	mvvline(height_offset, width_offset + width_working_area / 3, 0, height_working_area);
 	mvvline(height_offset, width_offset + 2 * (width_working_area / 3), 0, height_working_area);
 
-	Window_size win_size = {
-		.height = height_working_area,
-		.width = width_working_area,
-		.height_offset = height_offset,
-		.width_offset = width_offset
-	};
-	draw_menu_contex(app, &win_size);
+	win_size->height = height_working_area;
+	win_size->width = width_working_area;
+	win_size->height_offset = height_offset;
+	win_size->width_offset = width_offset;
+
+	calculate_corners(app, app->contex.field, *win_size);
+
+	draw_menu_contex(app, *win_size);
 }
-static void draw_menu_contex(Application_info* app, Window_size* win_size) {
+static void draw_menu_contex(Application_info* app, Window_size win_size) {
 	const char common_part[] = "Turn: ";
 
 	const size_t string_offset = sizeof(common_part);
@@ -259,7 +253,52 @@ static void draw_menu_contex(Application_info* app, Window_size* win_size) {
 			destroy_application_info(app);
 			exit(-1);
 		}
-
 	}
-	mvprintw(1, win_size->width + sizeof(char) + 1 - string_offset, "%s%c", common_part, whos_turn);
+	mvprintw(1, win_size.width + sizeof(char) + 1 - string_offset, "%s%c", common_part, whos_turn);
+}
+static bool check_if_mouse_button_pressed(MEVENT *event) {
+	if(event->bstate & BUTTON1_CLICKED) {
+		return true;
+	}
+	return false;
+}
+
+static bool handle_input_event(MEVENT *event, Cordinates* cord) {
+	int key = getch();
+
+	switch(key) {
+		case KEY_MOUSE : {
+			if(getmouse(event) == OK) {
+				if(check_if_mouse_button_pressed(event) == true) {
+					cord->x = event->x;
+					cord->y = event->y;
+					return true;
+				}
+			}
+			break;
+		}
+	}
+	flushinp();
+	return false;
+}
+
+static inline bool is_in_field(uint32_t event_x, uint32_t event_y, Cordinates field_cordinates[CORNER_NUM]) {
+	if(event_x > field_cordinates[0].x && event_x < field_cordinates[1].x) {
+		if(event_y > field_cordinates[2].y && event_y < field_cordinates[3].y) { 
+			return true;
+		}
+	}
+	return false;
+}
+
+void get_event_positon(int32_t *tile_x, int32_t *tile_y, Field field[TABLE][TABLE],
+					   Cordinates cord) {
+	for(uint32_t i = 0; i < TABLE; i++) {
+		for(uint32_t j = 0; j < TABLE; j++) {
+			if(is_in_field(cord.x, cord.y, field[i][j].corner_cord) == TRUE) {
+				*tile_x = j;
+				*tile_y = i;
+			}
+		}
+	}
 }

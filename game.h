@@ -8,7 +8,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-
+#define TABLE 3
+#define CORNER_NUM 4 
 typedef enum 
 {
 	GAME_CHARACTER_X = 0,
@@ -18,15 +19,15 @@ typedef enum
 
 typedef struct 
 {
-	uint8_t x;
-	uint8_t y;
+	uint32_t x;
+	uint32_t y;
 } Cordinates;
 
 typedef struct 
 {
 	bool is_empty;
 	CHARACTER character;
-	Cordinates cord;
+	Cordinates corner_cord[CORNER_NUM];
 } Field;
 
 typedef struct
@@ -38,8 +39,8 @@ typedef struct
 void construct_field(Field *field);
 void construct_player(Player *player);
 
-bool make_move(Player* player, Field **field, Cordinates *cord);
-bool check_is_game_over(void);	// TODO
+bool make_move(Player* player, Field *field);
+bool check_is_game_over(Field field[TABLE][TABLE]);
 
 void start_game(Player* player, size_t number_of_player);
 #endif
