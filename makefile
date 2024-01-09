@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -std=c18 -lncursesw -g
-FILES = main.c game.c console.c
+FILES = src/main.c src/game.c src/console.c
 CFLAGS_DEBUG = -Wall -Wextra -std=c18 -lncursesw -g 
 
 all:

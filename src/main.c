@@ -12,7 +12,7 @@
 #include <locale.h>
 #include <unistd.h>
 
-#include "console.h"
+#include "../headers/console.h"
 
 #define _XOPEN_SOURCE_EXTENDED
 

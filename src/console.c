@@ -11,7 +11,7 @@
 #include <time.h>
 #include <string.h>
 
-#include "console.h"
+#include "../headers/console.h"
 
 #define _GNU_SOURCE
 

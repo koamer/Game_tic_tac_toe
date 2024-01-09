@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 
-#include "console.h"
+#include "../headers/console.h"
 
 void construct_field(Field *field)
 {
