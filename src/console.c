@@ -21,10 +21,14 @@ static bool handle_input_event(MEVENT *event, Cordinates* cord);
 
 void construct_application_info(Application_info *app)
 {
+	if(app == NULL){
+		destroy_application_info(NULL);
+	}
+
 	raw();
 	noecho();
 	system("setterm -cursor off");
-	getmaxyx(stdscr, app->max_size_y, app->max_size_x);
+
 	keypad(initscr(), true);
 
 	for (size_t i = 0; i < MAX_COLOR_SETS; i++)
@@ -34,6 +38,13 @@ void construct_application_info(Application_info *app)
 		app->set[i].background_color_value = 0;
 	}
 	create_logs_file(app);
+	getmaxyx(stdscr, app->max_size_y, app->max_size_x);
+
+	if(app->max_size_x <= 30 || app->max_size_y <= 30) {
+		write_logs(app, "Size of windows is to small.", __func__);
+		destroy_application_info(app);
+	}
+
 	for(size_t i = 0 ; i < TABLE; i++) {
 		for(size_t j = 0; j < TABLE; j++) {
 			construct_field(&app->contex.field[i][j]);
@@ -140,8 +151,9 @@ void write_logs(Application_info* app, const char* message, const char* func) {
 
 void destroy_application_info(Application_info *app) {
 	if(app == NULL) {
-		write_logs(app, "Error: App is not set", __func__);
+		fprintf(stderr, "Error: App is not set");
 		endwin();
+		system("setterm -cursor on");
 		exit(EXIT_FAILURE);
 	}
 
@@ -283,8 +295,8 @@ static bool handle_input_event(MEVENT *event, Cordinates* cord) {
 }
 
 static inline bool is_in_field(uint32_t event_x, uint32_t event_y, Cordinates field_cordinates[CORNER_NUM]) {
-	if(event_x > field_cordinates[0].x && event_x < field_cordinates[1].x) {
-		if(event_y > field_cordinates[2].y && event_y < field_cordinates[3].y) { 
+	if(event_x >= field_cordinates[0].x && event_x <= field_cordinates[1].x) {
+		if(event_y >= field_cordinates[2].y && event_y <= field_cordinates[0].y) {
 			return true;
 		}
 	}
@@ -301,4 +313,8 @@ void get_event_positon(int32_t *tile_x, int32_t *tile_y, Field field[TABLE][TABL
 			}
 		}
 	}
+}
+
+void draw_field(Field *field, char move) {
+	
 }

@@ -11,16 +11,21 @@
 #include <time.h>
 #include <locale.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "../headers/console.h"
 
 #define _XOPEN_SOURCE_EXTENDED
 
+#ifndef DEBUG
+	#define DEBUG 0
+#endif
+
 int main(void)
 {
 	srand(time(NULL));
 	setlocale(LC_ALL, "");
-
+	
 	initscr();
 
 	Application_info app;
@@ -30,7 +35,6 @@ int main(void)
 	bool is_running = true;
 
 	Window_size win_size;
-	
 	while (is_running)
 	{
 		start_game(app.contex.player, NUMBER_OF_PLAYER);
@@ -40,12 +44,20 @@ int main(void)
 		get_event_positon(&tile_x, &tile_y, app.contex.field, cord);
 		if((tile_x)  == -1 || (tile_y) == -1) {
 			write_logs(&app, "Event postion is not in the any tile of the game", __func__);
-			fprintf(app.logs, "ERR DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+			#if defined(DEBUG)
+				fprintf(app.logs, "DBG: Evenet coordinates: x: %d, y:%d\n", cord.x, cord.y);
+				fprintf(app.logs, "ERR DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+			#endif
 			continue;
 		}
-		fprintf(app.logs, "DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+		#if defined(DEBUG)
+			fprintf(app.logs, "DBG: Evenet coordinates: x: %d, y:%d\n", cord.x, cord.y);
+			fprintf(app.logs, "DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+		#endif
 		make_move(app.contex.current_player_move, &app.contex.field[tile_x][tile_y]);
+		draw_move('x', &app.contex.field[tile_x][tile_y]);
 		check_is_game_over(app.contex.field);
+		//switch_player();
 		is_running = false;
 	}
 	destroy_application_info(&app);
