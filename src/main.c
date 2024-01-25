@@ -11,7 +11,6 @@
 #include <time.h>
 #include <locale.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "../headers/console.h"
 
@@ -43,10 +42,10 @@ int main(void)
 		int32_t tile_x = -1, tile_y = -1;
 		get_event_positon(&tile_x, &tile_y, app.contex.field, cord);
 		if((tile_x)  == -1 || (tile_y) == -1) {
-			write_logs(&app, "Event postion is not in the any tile of the game", __func__);
+			write_logs(&app, "ERR: Event postion is not in the any tile of the game", __func__);
 			#if defined(DEBUG)
 				fprintf(app.logs, "DBG: Evenet coordinates: x: %d, y:%d\n", cord.x, cord.y);
-				fprintf(app.logs, "ERR DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
+				fprintf(app.logs, "DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
 			#endif
 			continue;
 		}
@@ -54,8 +53,10 @@ int main(void)
 			fprintf(app.logs, "DBG: Evenet coordinates: x: %d, y:%d\n", cord.x, cord.y);
 			fprintf(app.logs, "DBG: Tile_x: %d, Tile_y: %d\n", tile_x, tile_y);
 		#endif
-		make_move(app.contex.current_player_move, &app.contex.field[tile_x][tile_y]);
-		draw_move('x', &app.contex.field[tile_x][tile_y]);
+		if(make_move(app.contex.current_player_move, &app.contex.field[tile_x][tile_y]) == false) {
+			continue;
+		}
+		draw_move(&app.contex.field[tile_x][tile_y], app.contex.current_player_move->picked);
 		check_is_game_over(app.contex.field);
 		//switch_player();
 		is_running = false;

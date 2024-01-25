@@ -28,7 +28,7 @@ void construct_player(Player *player)
 	player->picked = GAME_CHARACTER_NS;
 	player->moves = 0;
 }
-
+// TODO: Propably should be inside construct_player to make sure that pointer to current player is correct
 void start_game(Player* player, const size_t number_of_player)
 {
 	if(number_of_player != 2 ) {
@@ -46,8 +46,12 @@ bool check_is_game_over(Field field[TABLE][TABLE]) {
 }
 
 bool make_move(Player* player, Field *field) {
-	const char current_move = player->picked == GAME_CHARACTER_O ? 'O' : 'X';
-	UNUSED(current_move);
-	UNUSED(field);
+	const CHARACTER current_move = player->picked == GAME_CHARACTER_O ? GAME_CHARACTER_O : GAME_CHARACTER_X;
+	if(field->is_empty == false) {
+		return false;
+	}
+	field->character = current_move;
+	field->is_empty = false;
+	player->moves++;
 	return true;
 }

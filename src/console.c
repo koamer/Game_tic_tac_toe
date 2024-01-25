@@ -18,6 +18,8 @@
 static void draw_menu_contex(Application_info *app, Window_size win_size);
 static bool check_if_mouse_button_pressed(MEVENT *event);
 static bool handle_input_event(MEVENT *event, Cordinates* cord);
+static void draw_x(Field field);
+static void draw_o(Field field);
 
 void construct_application_info(Application_info *app)
 {
@@ -315,6 +317,26 @@ void get_event_positon(int32_t *tile_x, int32_t *tile_y, Field field[TABLE][TABL
 	}
 }
 
-void draw_field(Field *field, char move) {
-	
+void draw_move(Field *field, CHARACTER move) {
+	switch(move) {
+		case GAME_CHARACTER_O : {
+			draw_o(*field);
+			break;
+		}
+		case GAME_CHARACTER_X : {
+			draw_x(*field);
+			break;
+		}
+		case GAME_CHARACTER_NS : {
+
+			break;
+		}
+	}
+}
+
+static void draw_x(Field field) {
+	UNUSED(field);
+}
+static void draw_o(Field field) {
+	UNUSED(field);
 }

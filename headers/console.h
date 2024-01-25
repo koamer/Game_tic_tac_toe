@@ -62,7 +62,7 @@ void write_logs(Application_info *app, const char* message, const char* func);
 Cordinates get_mouse_click_postion(void);
 
 void draw_field(Application_info *app, Window_size *win_size);
-void draw_move(char current_move, Field *field);
+void draw_move(Field *field, CHARACTER move);
 void get_event_positon(int32_t *x, int32_t *y, Field field[TABLE][TABLE], Cordinates cord);
 void calculate_corners(Application_info *app, Field field[TABLE][TABLE], Window_size win_size);
 #endif
